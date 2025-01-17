@@ -1,25 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.canvas.Canvas?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
-<?import javafx.scene.control.Slider?>
-<HBox xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+<?import com.laelcosta.tilingbilliards.geometry.ResizableCanvas?>
+<HBox style="-fx-background-color: BLACK;"
+      xmlns="http://javafx.com/javafx/23.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.laelcosta.tilingbilliards.TilingBilliardsController">
-    <Canvas fx:id="canvas" height="300.0" width="400.0"/>
-    <VBox alignment="CENTER" spacing="20.0">
+    <ResizableCanvas fx:id="canvas"
+                     onMousePressed="#onCanvasDragStart"
+                     onMouseDragged="#onCanvasDrag"
+                     onScroll="#onCanvasScroll"
+                     HBox.hgrow="ALWAYS"
+    />
+    <VBox alignment="CENTER" spacing="20.0"
+          maxWidth="250.0">
         <padding>
-            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
         </padding>
 
-        <Slider fx:id="slider" blockIncrement="1.0" majorTickUnit="3.0"
-                max="12.0" min="3.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="3.0" />
-        <Button onAction="#onGoButtonClick" text="Go!"/>
-        <Label fx:id="infoText"/>
+        <Label text="Theta (in units of π)" />
+        <Slider fx:id="slider" majorTickUnit="1.0" max="2.0"
+                showTickLabels="true" showTickMarks="true" value="0.1" />
     </VBox>
 </HBox>

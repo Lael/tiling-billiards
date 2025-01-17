@@ -2,6 +2,8 @@ package com.laelcosta.tilingbilliards.geometry;
 
 import java.util.Objects;
 
+import static com.laelcosta.tilingbilliards.geometry.MathUtils.EPSILON;
+
 /**
  * Vector2D represents a point or a vector in a 2D affine space. There are many implementations out there, but I like
  * writing my own so that I know exactly what every operation does. The key point here is that every arithmetic
@@ -17,6 +19,10 @@ public class Vector2D {
         this.y = y;
     }
 
+    public Vector2D() {
+        this(0, 0);
+    }
+
     public static Vector2D polar(double r, double theta) {
         return new Vector2D(Math.cos(theta) * r, Math.sin(theta) * r);
     }
@@ -27,10 +33,6 @@ public class Vector2D {
 
     public Vector2D minus(Vector2D other) {
         return new Vector2D(this.x - other.x, this.y - other.y);
-    }
-
-    public Vector2D times(Vector2D other) {
-        return new Vector2D(this.x * other.x, this.y * other.y);
     }
 
     public Vector2D times(double d) {
@@ -74,10 +76,6 @@ public class Vector2D {
         return x * other.x + y * other.y;
     }
 
-    public double cross(Vector2D other) {
-        return x * other.y - y * other.x;
-    }
-
     public Vector2D projectOnto(Vector2D other) {
         return other.times(this.dot(other) / other.dot(other));
     }
@@ -94,7 +92,8 @@ public class Vector2D {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Vector2D vector2D = (Vector2D) o;
-        return Double.compare(x, vector2D.x) == 0 && Double.compare(y, vector2D.y) == 0;
+        return (Double.compare(x, vector2D.x) == 0 && Double.compare(y, vector2D.y) == 0)
+                || this.distanceTo(vector2D) < EPSILON;
     }
 
     @Override
@@ -104,9 +103,6 @@ public class Vector2D {
 
     @Override
     public String toString() {
-        return "Vector2D{" +
-                "x=" + x +
-                ", y=" + y +
-                '}';
+        return "{" + x + ", " + y + "}";
     }
 }

@@ -46,6 +46,7 @@ public class Polygon {
         for (int i = 0; i < n; i++) {
             Vector2D v1 = vertices[i];
             Vector2D v2 = vertices[(i + 1) % n];
+            if (new LineSegment(v1, v2).contains(point)) return true;
             wn += normalizeAngle(point.headingTo(v2) - point.headingTo(v1));
         }
         return wn > Math.PI;
@@ -54,9 +55,10 @@ public class Polygon {
     /**
      * This is the important part for billiard-type systems. To ``cast a ray'' means to move an imaginary particle along
      * the ray until it collides with something. In this case, that means hitting a side of the polygon. For non-convex
-     * polygons, multiple collisions are possible, so we return the first one.
+     * polygons, multiple collisions are possible, so we return the first one. Return null if the ray source is not
+     * contained in the polygon or if the collision is extremely close to a vertex.
      * @param ray the ray to cast
-     * @return an object reflecting useful information about the collision
+     * @return an object reflecting useful information about the collision, or null
      */
     public PolygonRayCollision castRay(Ray ray) {
         if (!this.contains(ray.source)) {
@@ -92,7 +94,7 @@ public class Polygon {
         }
         if (bestIntersection == null) return bestIntersection;
         for (Vector2D v : vertices) {
-            if (bestIntersection.point.distanceToSq(v) < EPSILON) {
+            if (bestIntersection.point.distanceTo(v) < EPSILON) {
                 return null;
             }
         }

@@ -1,49 +1,115 @@
 package com.laelcosta.tilingbilliards;
 
+import com.laelcosta.tilingbilliards.geometry.Vector2D;
+import com.laelcosta.tilingbilliards.tiling.PolygonalTiling;
+import com.laelcosta.tilingbilliards.tiling.QuasiRegularTiling;
+import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.paint.Color;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 
 public class TilingBilliardsController {
-    @FXML
-    private Label infoText;
+    private final static double ZOOM_SPEED = 0.005;
+    private final PolygonalTiling tiling = new QuasiRegularTiling(3, 6);
+    private long lastFrameTime = -1;
+
+    double startX = 0;
+    double startY = 0;
+
+    double mouseX;
+    double mouseY;
 
     @FXML
     private Slider slider;
-    
-    @FXML    
-    private Canvas canvas;
 
     @FXML
-    protected void onGoButtonClick() {
-    	
-        infoText.setText(String.format("Set n = %d.", Math.round(slider.getValue())));
-        // TODO(Cecilia): When the button is clicked, draw a regular n-gon to the center of the canvas.
-        //  Hint: you will need to access the Canvas (try adding the fx:id attribute in the FXML file), and then draw to
-        //  it using a GraphicsContext. See GraphicsContext::setFill() and GraphicsContext::fillPolygon()
-        
-        GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
-        
-        graphicsContext.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        
-        graphicsContext.setFill(Color.VIOLET);
-        
-        int n = (int)Math.round(slider.getValue());
-        
-        
-        
-        double[] xCoordinates = new double[n];
-        double[] yCoordinates = new double[n];
-        
-        for(int i=0; i<n; i++)
-        {
-        	xCoordinates[i] = 100*(Math.cos(2*i*Math.PI/n)) + canvas.getWidth()/2;
-        	yCoordinates[i] = 100*(Math.sin(2*i*Math.PI/n)) + canvas.getHeight()/2;
-        }
-        
-        graphicsContext.fillPolygon(xCoordinates, yCoordinates, n);
+    private Canvas canvas;
+
+    private DrawController drawController;
+
+    @FXML
+    public void initialize() {
+         drawController = new DrawController(canvas);
+         tiling.generate(20);
+         tiling.tilingBilliard(new Vector2D(startX, startY), -slider.getValue() * Math.PI, 100000);
+
+         slider.valueProperty().addListener((_, _, newValue) -> {
+             long startTime = System.nanoTime();
+             tiling.tilingBilliard(new Vector2D(startX, startY), -newValue.doubleValue() * Math.PI, 100000);
+             long endTime = System.nanoTime();
+             double duration = ((double) (endTime - startTime)) / 1e6; // in ms
+             if (duration > 100) System.out.printf("Slow computation: %.01fms\n", duration);
+         });
+
+         new AnimationTimer() {
+             @Override public void handle(long currentNanoTime) {
+                 if (lastFrameTime > 0) {
+                     double frameTime = (double) (currentNanoTime - lastFrameTime) / 1e6; // in ms
+                     if (frameTime > 100) { // 0.1s
+                         System.out.printf("Long gap between frames: %.01fms\n", frameTime);
+                     }
+                 }
+                 lastFrameTime = currentNanoTime;
+                 draw();
+             }
+         }.start();
+    }
+
+    @FXML
+    protected void onCanvasDragStart(MouseEvent event) {
+        mouseX = event.getX();
+        mouseY = event.getY();
+    }
+
+    @FXML
+    protected void onCanvasDrag(MouseEvent event) {
+        long startTime = System.nanoTime();
+        double x = event.getX();
+        double y = event.getY();
+        double z = drawController.getZoom();
+        drawController.translate((x - mouseX) / z, (y - mouseY) / z);
+
+        mouseX = x;
+        mouseY = y;
+        long endTime = System.nanoTime();
+        double duration = ((double) (endTime - startTime)) / 1e3; // in µs
+        if (duration > 5000) System.out.printf("Slow dragging: %.01fµs\n", duration);
+    }
+
+    @FXML
+    protected void onCanvasScroll(ScrollEvent event) {
+        long startTime = System.nanoTime();
+        double x = event.getX();
+        double y = event.getY();
+
+        Vector2D v = drawController.getCenter();
+        double z = drawController.getZoom();
+        // translate v so that (x, y) is in the center
+        v.x += (x - canvas.getWidth() / 2) / z;
+        v.y += (y - canvas.getHeight() / 2) / z;
+
+        z = drawController.getZoom() * Math.exp(event.getDeltaY() * ZOOM_SPEED);
+        drawController.setZoom(z);
+
+        v.x -= (x - canvas.getWidth() / 2) / z;
+        v.y -= (y - canvas.getHeight() / 2) / z;
+
+        drawController.setCenter(v.x, v.y);
+        long endTime = System.nanoTime();
+        double duration = ((double) (endTime - startTime)) / 1e3; // in µs
+        if (duration > 5000) System.out.printf("Slow scrolling: %.01fµs\n", duration);
+    }
+
+    void draw() {
+        long startTime = System.nanoTime();
+        drawController.clear();
+        tiling.draw(drawController);
+        long endTime = System.nanoTime();
+
+        double duration = ((double) (endTime - startTime)) / 1e3; // in µs
+
+        if (duration > 5000) System.out.printf("Slow frame draw: %.01fµs\n", duration);
     }
 }

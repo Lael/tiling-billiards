@@ -1,7 +1,7 @@
 package com.laelcosta.tilingbilliards.geometry;
 
 public class LineSegment {
-    private Line line;
+    private final Line line;
     public final Vector2D p1, p2;
     private double length = -1;
     private double lengthSq = -1;

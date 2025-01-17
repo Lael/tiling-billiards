@@ -1,7 +1,7 @@
 package com.laelcosta.tilingbilliards.geometry;
 
 /**
- * Represents a affine ray with a source and a direction.
+ * Represents an affine ray with a source and a direction.
  */
 public class Ray {
     public Vector2D source;
