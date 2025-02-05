@@ -12,7 +12,7 @@ import javafx.scene.input.ScrollEvent;
 
 public class TilingBilliardsController {
     private final static double ZOOM_SPEED = 0.005;
-    private final PolygonalTiling tiling = new QuasiRegularTiling(3, 6);
+    private final PolygonalTiling tiling = new QuasiRegularTiling(3,6);
     private long lastFrameTime = -1;
 
     double startX = 0;
@@ -32,7 +32,8 @@ public class TilingBilliardsController {
     @FXML
     public void initialize() {
          drawController = new DrawController(canvas);
-         tiling.generate(20);
+         tiling.generate(10);
+         tiling.printSizeInfo();
          tiling.tilingBilliard(new Vector2D(startX, startY), -slider.getValue() * Math.PI, 100000);
 
          slider.valueProperty().addListener((_, _, newValue) -> {
@@ -49,6 +50,7 @@ public class TilingBilliardsController {
                      double frameTime = (double) (currentNanoTime - lastFrameTime) / 1e6; // in ms
                      if (frameTime > 100) { // 0.1s
                          System.out.printf("Long gap between frames: %.01fms\n", frameTime);
+                         tiling.printSizeInfo();
                      }
                  }
                  lastFrameTime = currentNanoTime;

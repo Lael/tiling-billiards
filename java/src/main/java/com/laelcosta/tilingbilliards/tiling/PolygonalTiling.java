@@ -163,4 +163,8 @@ public abstract class PolygonalTiling {
         }
         return null;
     }
+
+    public void printSizeInfo() {
+        System.out.printf("Tiles: %d Tile Ids: %d\n", tiles.size(), tileIDs.size());
+    }
 }
