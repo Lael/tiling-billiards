@@ -12,7 +12,7 @@ export abstract class PolygonalTiling<
     tiles: Set<T> = new Set<T>();
     tileIds: Set<String> = new Set<String>();
     tilesByType: T[][] = [];
-    dirty: boolean = false;
+    dirty: boolean = true;
 
     constructor(tileset: ProtoTile<P>[]) {
         this.tileset = tileset;

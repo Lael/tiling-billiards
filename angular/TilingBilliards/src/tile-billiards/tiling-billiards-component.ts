@@ -8,6 +8,7 @@ import {PolygonalTiling} from "./polygonal-tiling";
 import {closeEnough} from "../math/math-helpers";
 import {HyperbolicQuasiregularTiling} from "./hyperbolic-quasiregular-tiling";
 import {Vector2} from "three";
+import {PenroseTiling} from './penrose-tiling';
 
 const CLEAR_COLOR = 0x0a2933;
 
@@ -62,7 +63,11 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     }
 
     private resetTiling() {
+       this.tiling = new PenroseTiling();
+       this.tiling.generate(1);
+      /*
         const c = 2.0 / this.n + 2.0 / this.m;
+
         if (closeEnough(c, 1)) {
             // Affine
             this.geometry = Geometry.AFFINE;
@@ -79,6 +84,8 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
             // Depth is meaningless here: we will always generate the whole tiling.
         }
         this.play();
+
+         */
     }
 
     override frame(dt: number) {

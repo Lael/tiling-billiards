@@ -15,7 +15,7 @@ import {AffineRay} from "./affine-ray";
 import {Complex} from "../math/complex";
 import {EPSILON} from "../math/math-helpers";
 
-export abstract class AffinePolygonalTiling extends PolygonalTiling<AffineTile, AffinePolygon> {
+export abstract class AffinePolygonalTiling<T extends AffineTile> extends PolygonalTiling<T, AffinePolygon> {
     meshes: InstancedMesh[] = [];
     billiardPath: Line | undefined = undefined;
 
@@ -96,14 +96,14 @@ export abstract class AffinePolygonalTiling extends PolygonalTiling<AffineTile, 
         this.billiardPath = new Line(new BufferGeometry().setFromPoints(path), new LineBasicMaterial({color: 0xffffff}));
     }
 
-    private findTileContaining(point: Vector2): AffineTile {
+    private findTileContaining(point: Vector2): T {
         for (let t of this.tiles) {
             if (this.polygonForTile(t).contains(point)) return t;
         }
         throw Error('point is not contained in any tile');
     }
 
-    private polygonForTile(t: AffineTile): AffinePolygon {
+    private polygonForTile(t: T): AffinePolygon {
         let p = this.tileset[t.tilesetIndex].polygon;
         return p.rotate(t.rotation).translate(t.position);
     }
