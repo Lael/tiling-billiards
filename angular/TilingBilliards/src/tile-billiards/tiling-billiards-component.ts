@@ -65,7 +65,7 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     private resetTiling() {
        this.tiling = new PenroseTiling();
        //this.tiling.generate(1);
-      this.tiling.generate(2);
+      this.tiling.generate(1);
       /*
         const c = 2.0 / this.n + 2.0 / this.m;
 
