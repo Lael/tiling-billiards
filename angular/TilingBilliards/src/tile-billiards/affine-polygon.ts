@@ -98,4 +98,8 @@ export class AffinePolygon {
             this.vertices.map(v => v.clone().add(diff))
         );
     }
+
+    scale(scaleFactor: number): AffinePolygon {
+      return new AffinePolygon(this.vertices.map(v => v.clone().multiplyScalar(scaleFactor)));
+    }
 }

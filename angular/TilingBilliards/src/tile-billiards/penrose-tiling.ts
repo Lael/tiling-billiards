@@ -1,10 +1,11 @@
 import {PolygonalTiling} from './polygonal-tiling';
 import {GridLineIndex, PenroseTile} from './penrose-tile';
 import {AffinePolygon} from './affine-polygon';
-import {Color, Scene, Vector2} from 'three';
+import {BufferGeometry, Color, LineBasicMaterial, LineSegments, Scene, Vector2} from 'three';
 import {AffinePolygonalTiling} from './affine-polygonal-tiling';
 import {Line} from '../math/geometry/line';
 import {Complex} from '../math/complex';
+import {AffineCircle} from '../math/geometry/affine-circle';
 
 export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
@@ -26,13 +27,13 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     super([
       {polygon: new AffinePolygon([new Vector2(z1-1,-t1), new Vector2(z1,-t1),
         new Vector2(z1+Math.cos(2*Math.PI/5),Math.sin(2*Math.PI/5)-t1),
-        new Vector2(z1+Math.cos(2*Math.PI/5)-1,Math.sin(2*Math.PI/5)-t1)]),
-      color: new Color(0x444444)},
+        new Vector2(z1+Math.cos(2*Math.PI/5)-1,Math.sin(2*Math.PI/5)-t1)]).scale(0.05),
+      color: new Color(0xffa500)},
 
       {polygon: new AffinePolygon([new Vector2(z2-1,-t2), new Vector2(z2,-t2),
           new Vector2(z2+Math.cos(Math.PI/5),Math.sin(Math.PI/5)-t2),
-          new Vector2(z2+Math.cos(Math.PI/5)-1,Math.sin(Math.PI/5)-t2)]),
-        color: new Color(0x444444)}
+          new Vector2(z2+Math.cos(Math.PI/5)-1,Math.sin(Math.PI/5)-t2)]).scale(0.05),
+        color: new Color(0x00ffff)}
     ])
   }
 
@@ -57,7 +58,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
   Going to write method that finds the intersection between two lines
    */
 
-  getIntersection(l1: GridLineIndex, l2: GridLineIndex): Complex {
+  getIntersection(l1: GridLineIndex, l2: GridLineIndex): Vector2 {
 
     const line1 = this.defineLine(l1);
     console.log(`Line 1 Parameters: (a - ${line1.a}, b - ${line1.b}, c - ${line1.c})`);
@@ -69,20 +70,67 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
     console.log(`Intersection at: (${intersection.x},${intersection.y})`);
 
-    return intersection;
+    return intersection.toVector2();
   }
 
   /*
-  Method that determines the type of rhomb tile to place based on angle
+  Method that determines the type of rhomb tile to place based on intersection angles
    */
 
   rhombusType(l1: GridLineIndex, l2: GridLineIndex): number {
 
     const modValue = (l2.family - l1.family) % 5;
     if (modValue == 2 || modValue == 3)
-      return 0;
-    else
       return 1;
+    else
+      return 0;
+  }
+
+  /*
+  Method that determines the orientation of the rhomb tile based on the intersection  angles
+
+  TODO: At some point, adjust this method to some sort of combinatorial formula using family indices
+
+  For  the time being, this method works!
+   */
+
+
+  rhombusRotation(l1: GridLineIndex, l2: GridLineIndex): number {
+
+    let angleRotation = 0;
+
+    /*if ((l1.family == 0 && l2.family == 1) || (l1.family == 1 && l2.family == 0) ||
+      (l1.family == 0 && l2.family == 3) || (l1.family == 3 && l2.family == 0)) {
+
+      angleRotation = 0;
+
+    } */
+    if ((l1.family == 1 && l2.family == 2) || (l1.family == 2 && l2.family == 1) ||
+      (l1.family == 1 && l2.family == 4) || (l1.family == 4 && l2.family == 1)) {
+
+      angleRotation = 2*Math.PI/5
+
+    } else if ((l1.family == 1 && l2.family == 3) || (l1.family == 3 && l2.family == 1) ||
+      (l1.family == 3 && l2.family == 4) || (l1.family == 4 && l2.family == 3)) {
+
+      angleRotation = Math.PI/5;
+
+    } else if ((l1.family == 0 && l2.family == 4) || (l1.family == 4 && l2.family == 0) ||
+      (l1.family == 2 && l2.family == 4) || (l1.family == 4 && l2.family == 2)) {
+
+      angleRotation = 3*Math.PI/5;
+
+    } else if ((l1.family == 0 && l2.family == 2) || (l1.family == 2 && l2.family == 0)) {
+
+      angleRotation = 4*Math.PI/5;
+
+    } else if ((l1.family == 2 && l2.family == 3) || (l1.family == 3 && l2.family == 2)) {
+
+      angleRotation = 3*Math.PI/10;
+
+    }
+
+    return angleRotation;
   }
 
   adjacentTile(t: PenroseTile, sideIndex: number): PenroseTile {
@@ -95,6 +143,56 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     // return new PenroseTile(1, new Vector2(0,-1),0,{family: 0, member:1},{family: 1, member:1})
   }
 
+  override draw(scene: Scene){
+
+    let colors: number[] = [0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00];
+    let circle = new AffineCircle(Complex.ZERO, 1000);
+
+    for (let i = 0; i < 5; i++) {
+
+      let values: Vector2[] = [];
+
+      for (let j = -100; j < 100; j++) {
+        let line = this.defineLine({family: i, member: j});
+        let intersection = circle.intersectLine(line);
+
+        values.push(intersection[0].toVector2());
+        values.push(intersection[1].toVector2());
+
+
+      }
+
+      let lineSegments = new LineSegments(
+        new BufferGeometry().setFromPoints(values), new LineBasicMaterial({color: colors[i]}));
+
+      scene.add(lineSegments);
+    }
+
+    super.draw(scene);
+  }
+
+  override generate(depth: number) {
+
+    for(let family1 = 0; family1 < 4; family1++) {
+
+      for(let family2 = family1 + 1; family2 < 5; family2++) {
+
+        for(let member1 = -depth; member1 <= depth; member1++) {
+
+          for(let member2 = -depth; member2 <= depth; member2++) {
+
+            let gl1: GridLineIndex = {family: family1, member: member1};
+            let gl2: GridLineIndex = {family: family2, member: member2};
+
+            this.addTile(new PenroseTile(this.rhombusType(gl1,gl2), this.getIntersection(gl1,gl2),
+              this.rhombusRotation(gl1,gl2), gl1, gl2));
+          }
+
+        }
+      }
+    }
+  }
+
   firstTile(): PenroseTile {
 
     /*
@@ -102,12 +200,16 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
       test drawing a polygon/thick rhomb at an intersection point
     */
 
-    const positionPoint = this.getIntersection({family: 0, member: 0},{family: 3, member: 0});
+    const positionPoint = this.getIntersection({family: 0, member: 0},{family: 1, member: 0});
 
     console.log(`First Tile position: (${positionPoint.x}, ${positionPoint.y})`);
 
-    return new PenroseTile(this.rhombusType({family: 0, member: 0}, {family: 3, member: 0}),
-      new Vector2(positionPoint.x, positionPoint.y), 0,{family: 1, member: 2}, {family: 2, member: 1});
+
+
+    return new PenroseTile(this.rhombusType({family: 0, member: 0}, {family: 1, member: 0}),
+      new Vector2(positionPoint.x, positionPoint.y),
+      this.rhombusRotation({family: 0, member: 0}, {family: 1, member: 0}),
+      {family: 1, member: 2}, {family: 2, member: 1});
 
   }
 
