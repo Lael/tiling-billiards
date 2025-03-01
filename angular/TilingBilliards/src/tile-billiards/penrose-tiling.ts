@@ -133,14 +133,47 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     return angleRotation;
   }
 
+
+
+  findNextIntersection(lineON: GridLineIndex, lineCROSSING: GridLineIndex, direction: Vector2): GridLineIndex {
+
+      let nearestPoint: Vector2;
+
+    return lineON ;
+  }
+
+
   adjacentTile(t: PenroseTile, sideIndex: number): PenroseTile {
-    return this.firstTile();  // - this was used to return just the first tile
+    // return this.firstTile();  // - this was used to return just the first tile
+    // Attach side indices and tile, choose the line we are moving along and then the direction
 
     /*
         changed to this.tiling.generate(2) in resetTiling() withing tiling-billiards-component to
         draw both the tiles: thick rhombus and thin rhombus
     */
     // return new PenroseTile(1, new Vector2(0,-1),0,{family: 0, member:1},{family: 1, member:1})
+
+    console.log(`Side Index: ${sideIndex}`);
+
+    let normalVector = this.tileset[t.tilesetIndex].polygon.sideNormal(sideIndex);
+
+    console.log(`Normal Vector: (${normalVector.x},${normalVector.y})`);
+
+    let nextIntersection = this.findNextIntersection(t.gridLineIndex1, t.gridLineIndex2,
+     normalVector);
+
+
+
+    // let triangleAngleIndicator = t.tilesetIndex;
+
+    // if triangle
+
+   // let L = 1/(Math.sin());
+
+
+    //return PenroseTile()
+
+    return this.firstTile();
   }
 
   override draw(scene: Scene){
@@ -171,7 +204,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     super.draw(scene);
   }
 
-  override generate(depth: number) {
+  /* override generate(depth: number) {
 
     for(let family1 = 0; family1 < 4; family1++) {
 
@@ -191,7 +224,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
         }
       }
     }
-  }
+  } */
 
   firstTile(): PenroseTile {
 
