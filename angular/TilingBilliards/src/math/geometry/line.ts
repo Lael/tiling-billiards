@@ -55,8 +55,12 @@ export class Line {
         const d = this.a * other.b - this.b * other.a;
         if (closeEnough(d, 0)) throw Error('Parallel lines do not intersect');
         const solution = new Complex(
-            -other.b * this.c + this.b * other.c,
-            other.a * this.c - this.a * other.c,
+          -other.b * this.c + this.b * other.c,
+            // -other.b * this.c + this.b * other.c, - incorrect numerator to find x coordinate
+            // other.b * this.c - this.b * other.c,
+          other.a * this.c - this.a * other.c,
+            // other.a * this.c - this.a * other.c, - incorrect numerator to find y coordinate
+            // this.a * other.c - other.a * this.c,
         ).scale(1 / d);
         if (!this.containsPoint(solution) || !other.containsPoint(solution)) {
             throw Error('Bad intersection');
