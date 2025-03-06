@@ -83,4 +83,11 @@ export class Line {
     get slope(): number {
         return -this.a / this.b;
     }
+
+    containsVector(vector: Vector2): boolean {
+
+       let d = vector.dot(new Vector2(this.a, this.b));
+
+      return closeEnough(d,0);
+    }
 }

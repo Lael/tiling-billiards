@@ -108,7 +108,7 @@ export class AffinePolygon {
   sideNormal(sideIndex: number): Vector2 {
 
     let vector1 = this.vertices[sideIndex];
-    let vector2 = this.vertices[(sideIndex+1)%4];
+    let vector2 = this.vertices[(sideIndex+1) % this.n];
 
     let distanceVector = new Vector2(vector2.x-vector1.x, vector2.y-vector1.y);
 
