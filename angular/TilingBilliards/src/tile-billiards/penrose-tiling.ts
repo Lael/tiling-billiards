@@ -133,7 +133,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
     } else if ((l1.family == 2 && l2.family == 3) || (l1.family == 3 && l2.family == 2)) {
 
-      angleRotation = 3*Math.PI/10;
+      angleRotation = 4*Math.PI/5;
 
     }
 
@@ -285,7 +285,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
     console.log(`Side Index: ${sideIndex}`);
 
-    let normalVector = this.tileset[t.tilesetIndex].polygon.sideNormal(sideIndex).rotateAround(new Vector2(), t.rotation);
+    let normalVector = this.tileset[t.tilesetIndex].polygon.sideNormal(sideIndex).rotateAround(new Vector2(), t.rotation); //t.rotation
 
     if (this.defineLine(t.gridLineIndex1).containsVector(normalVector)) {
       next = this.findNextIntersection(t.gridLineIndex1, t.gridLineIndex2, normalVector);
@@ -380,8 +380,8 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
   firstTile(): PenroseTile {
 
-    let gl1 = {family: 0, member: 0};
-    let gl2 = {family: 4, member: 2};
+    let gl1 = {family: 0, member: 0}; // 0 0
+    let gl2 = {family: 1, member: 0}; // 4 2
 
     console.log(`First Tile START`);  // debug
 
