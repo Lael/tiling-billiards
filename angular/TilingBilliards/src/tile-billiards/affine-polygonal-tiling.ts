@@ -2,13 +2,16 @@ import {PolygonalTiling} from "./polygonal-tiling";
 import {AffineTile} from "./affine-tile";
 import {
     BufferGeometry,
-    InstancedMesh, Line, LineBasicMaterial,
+    InstancedMesh,
+    Line,
+    LineBasicMaterial,
     Matrix4,
     MeshBasicMaterial,
     Scene,
     Shape,
     ShapeGeometry,
-    Vector2
+    Vector2,
+    Vector3
 } from "three";
 import {AffinePolygon, AffinePolygonRayCollision} from "./affine-polygon";
 import {AffineRay} from "./affine-ray";
@@ -47,6 +50,7 @@ export abstract class AffinePolygonalTiling extends PolygonalTiling<AffineTile, 
         if (this.dirty) this.updateMeshes();
         scene.add(...this.meshes);
         if (!!this.billiardPath) {
+            ;
             scene.add(this.billiardPath);
         }
     }
@@ -63,37 +67,41 @@ export abstract class AffinePolygonalTiling extends PolygonalTiling<AffineTile, 
             let collision: AffinePolygonRayCollision;
             try {
                 collision = p.castRay(ray);
-            } catch {
+                path.push(collision.point);
+
+                for (let v of p.vertices) {
+                    if (v.distanceTo(collision.point) < EPSILON) throw Error('hit a vertex');
+                }
+
+                // This is where the geometric details are implemented. One could perhaps expand on this for some kinds of
+                // tilings. In quasi-regular tilings, it's clear what to do, but for a tiling in which multiple copies of
+                // the same prototile share edges, two reasonable options suggest themselves:
+                //     (1) Do exactly the same thing (i.e., every time you cross an edge, reflect the ray direction in the
+                //         line normal to the edge). This is what is currently implemented.
+                //     (2) Assign each prototile a (possibly negative) refractive index, and compute the new direction using
+                //         Snell's Law. This would mean that the ray would proceed through same-tile edges unbent.
+
+                let si = collision.sideIndex;
+                const edge = p.vertices[(si + 1) % p.n].clone().sub(p.vertices[si]);
+                const reflected = ray.dir.clone().sub(project(ray.dir, edge).multiplyScalar(2)).normalize();
+                // It is helpful for numerical reasons to push the new ray source a little ways into the new tile. This has
+                // a minute chance of causing errors close to vertices, but *shrug*.
+                ray = {
+                    src: collision.point.add(reflected.clone().multiplyScalar(EPSILON)),
+                    dir: reflected,
+                };
+                tile = this.adjacentTile(tile, si);
+                this.addTile(tile);
+            } catch (e) {
+                console.log(e);
                 break;
             }
 
-
-            for (let v of p.vertices) {
-                if (v.distanceTo(collision.point) < EPSILON) throw Error('hit a vertex');
-            }
-
-            // This is where the geometric details are implemented. One could perhaps expand on this for some kinds of
-            // tilings. In quasi-regular tilings, it's clear what to do, but for a tiling in which multiple copies of
-            // the same prototile share edges, two reasonable options suggest themselves:
-            //     (1) Do exactly the same thing (i.e., every time you cross an edge, reflect the ray direction in the
-            //         line normal to the edge). This is what is currently implemented.
-            //     (2) Assign each prototile a (possibly negative) refractive index, and compute the new direction using
-            //         Snell's Law. This would mean that the ray would proceed through same-tile edges unbent.
-
-            let si = collision.sideIndex;
-            const edge = p.vertices[(si + 1) % p.n].clone().sub(p.vertices[si]);
-            const reflected = ray.dir.clone().sub(project(ray.dir, edge).multiplyScalar(2)).normalize();
-            // It is helpful for numerical reasons to push the new ray source a little ways into the new tile. This has
-            // a minute chance of causing errors close to vertices, but *shrug*.
-            ray = {
-                src: collision.point.add(reflected.clone().multiplyScalar(EPSILON * EPSILON)),
-                dir: reflected,
-            };
-            path.push(collision.point);
-            tile = this.adjacentTile(tile, si);
-            this.addTile(tile);
         }
-        this.billiardPath = new Line(new BufferGeometry().setFromPoints(path), new LineBasicMaterial({color: 0xffffff}));
+        console.log(path);
+        this.billiardPath = new Line(
+            new BufferGeometry().setFromPoints(path.map(v => new Vector3(v.x, v.y, 0.01))),
+            new LineBasicMaterial({color: 0xffffff}));
     }
 
     private findTileContaining(point: Vector2): AffineTile {

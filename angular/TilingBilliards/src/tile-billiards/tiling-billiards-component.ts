@@ -34,7 +34,7 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     depth: number = 20;
     logIterations: number = 1;
     geometry: Geometry = Geometry.AFFINE;
-    start: Vector2 = new Vector2();
+    start: Vector2 = new Vector2(0, 0);
     direction: number = 0.1234;
 
     private tiling: PolygonalTiling<any, any> | undefined = undefined;
@@ -85,10 +85,6 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
         this.processKeyboardInput(dt);
         this.scene.clear();
         this.tiling?.draw(this.scene);
-        // draw the starting point
-        switch (this.geometry) {
-
-        }
     }
 
     processKeyboardInput(dt: number) {

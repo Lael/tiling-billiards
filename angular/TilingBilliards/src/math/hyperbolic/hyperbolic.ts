@@ -296,7 +296,10 @@ export class HyperGeodesic extends GeodesicLike<HyperPoint> {
         const l1 = new LineSegment(this.p1.klein, this.p2.klein);
         const l2 = new LineSegment(other.p1.klein, other.p2.klein);
         const c = l1.intersect(l2);
-        if (c.length === 0) return undefined;
+        if (c.length === 0) {
+            console.log(l1, l2);
+            return undefined;
+        }
         return HyperPoint.fromKlein(c[0]);
     }
 

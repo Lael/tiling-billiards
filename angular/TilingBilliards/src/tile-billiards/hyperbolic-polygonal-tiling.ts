@@ -121,7 +121,7 @@ export abstract class HyperbolicPolygonalTiling extends PolygonalTiling<Hyperbol
                 const newHeading = normalizeAngle(oldHeading - 2 * (oldHeading - (sideHeading + Math.PI / 2)));
                 const reflected = HyperGeodesic.poincareRay(collision.point, newHeading);
                 ray = {
-                    src: collision.point.translate(reflected.p2, 2 * EPSILON),
+                    src: collision.point.translate(reflected.p2, 10 * EPSILON),
                     poincareDir: newHeading,
                 };
                 tile = this.adjacentTile(tile, si);

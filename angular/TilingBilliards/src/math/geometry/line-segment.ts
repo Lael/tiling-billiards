@@ -11,6 +11,7 @@ export class LineSegment extends Segment {
     private readonly m;
     readonly line: Line;
     readonly length: number;
+    readonly lengthSquared: number;
 
     constructor(private readonly p: Complex | Vector2, private readonly q: Complex | Vector2) {
         super();
@@ -20,7 +21,8 @@ export class LineSegment extends Segment {
         if (this.p1.equals(this.p2)) throw Error('Degenerate line segment');
         this.m = this.p1.plus(this.p2).scale(0.5);
         this.line = Line.throughTwoPoints(this.p1, this.p2);
-        this.length = this.p1.minus(this.p2).modulus();
+        this.lengthSquared = this.p1.minus(this.p2).modulusSquared();
+        this.length = Math.sqrt(this.lengthSquared);
     }
 
     override get start() {
@@ -68,7 +70,9 @@ export class LineSegment extends Segment {
 
     override containsPoint(p: Complex | Vector2): boolean {
         if (p instanceof Vector2) return this.containsPoint(Complex.fromVector2(p));
-        return closeEnough(this.p1.distance(p) + this.p2.distance(p), this.length);
+        return this.line.containsPoint(p)
+            && this.p1.distanceSquared(p) < this.lengthSquared
+            && this.p2.distanceSquared(p) < this.lengthSquared;
     }
 
     override startHeading(): number {

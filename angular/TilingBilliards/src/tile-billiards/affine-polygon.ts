@@ -65,7 +65,7 @@ export class AffinePolygon {
             }
             // t as in r(t) = P + tV. This is essentially the (signed) distance from the source to the collision
             let t = intersection.clone().sub(ray.src).dot(ray.dir);
-            if (t < 0) {
+            if (t <= 0) {
                 // negative t means the collision is behind the start point
                 continue;
             }
@@ -78,7 +78,9 @@ export class AffinePolygon {
                 };
             }
         }
-        if (bestIntersection == undefined) throw new Error("No intersection");
+        if (bestIntersection == undefined) {
+            throw new Error("No intersection");
+        }
         for (let v of this.vertices) {
             if (bestIntersection.point.distanceTo(v) < EPSILON) {
                 throw new Error("Hit a vertex");
