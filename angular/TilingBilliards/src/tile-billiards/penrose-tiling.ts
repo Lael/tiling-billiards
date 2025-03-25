@@ -7,6 +7,10 @@ import {Line} from '../math/geometry/line';
 import {Complex} from '../math/complex';
 import {AffineCircle} from '../math/geometry/affine-circle';
 import {log} from 'node:util';
+import {closeEnough} from '../math/math-helpers';
+
+const THICK_RADIUS = Math.cos(Math.PI/5)*Math.sin(Math.PI/5);
+const THIN_RADIUS = Math.cos(Math.PI/10)*Math.sin(Math.PI/10);
 
 export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
@@ -28,12 +32,12 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     super([
       {polygon: new AffinePolygon([new Vector2(z1-1,-t1), new Vector2(z1,-t1),
         new Vector2(z1+Math.cos(2*Math.PI/5),Math.sin(2*Math.PI/5)-t1),
-        new Vector2(z1+Math.cos(2*Math.PI/5)-1,Math.sin(2*Math.PI/5)-t1)]).scale(0.05),
+        new Vector2(z1+Math.cos(2*Math.PI/5)-1,Math.sin(2*Math.PI/5)-t1)]),
       color: new Color(0xffa500)},
 
       {polygon: new AffinePolygon([new Vector2(z2-1,-t2), new Vector2(z2,-t2),
           new Vector2(z2+Math.cos(Math.PI/5),Math.sin(Math.PI/5)-t2),
-          new Vector2(z2+Math.cos(Math.PI/5)-1,Math.sin(Math.PI/5)-t2)]).scale(0.05),
+          new Vector2(z2+Math.cos(Math.PI/5)-1,Math.sin(Math.PI/5)-t2)]),
         color: new Color(0x00ffff)}
     ])
   }
@@ -281,7 +285,8 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     */
 
     let next: GridLineIndex;
-    let lineOn: GridLineIndex;
+    let lineOn: GridLineIndex
+
 
     console.log(`Side Index: ${sideIndex}`);
 
@@ -298,6 +303,9 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
       throw Error('We do not find the normal on either line.')
     }
 
+    let type = this.rhombusType(lineOn,next);
+    let rotation = this.rhombusRotation(lineOn,next);
+
     console.log(`Normal Vector: (${normalVector.x},${normalVector.y})`);
 
 
@@ -305,8 +313,8 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
     // Will return a Penrose tile at some point
 
-    return new PenroseTile(this.rhombusType(lineOn, next), this.getIntersection(lineOn, next), this.rhombusRotation(lineOn, next),
-      lineOn, next);
+    return new PenroseTile(type,
+      t.position.clone().add(this.displacement(t,type, rotation, normalVector, sideIndex)), rotation, lineOn, next);
   }
 
 
@@ -317,7 +325,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
   override draw(scene: Scene){
 
-    let colors: number[] = [0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00];
+    let colors: number[] = [0xff0000, 0x00ff00, 0x00bfff, 0xff00ff, 0xffff00];
     let circle = new AffineCircle(Complex.ZERO, 1000);
 
     for (let i = 0; i < 5; i++) {
@@ -343,7 +351,23 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     super.draw(scene);
   }
 
+displacement(tile: PenroseTile, tileType2: number, rotation2: number, direction: Vector2, sideIndex:number): Vector2 {
 
+    let oldTile = this.tileset[tile.tilesetIndex].polygon.rotate(tile.rotation);
+    let newTile = this.tileset[tileType2].polygon.rotate(rotation2);
+
+    for(let i = 0; i < newTile.n; i++) {
+
+      if (closeEnough(newTile.sideNormal(i).dot(direction),-1)) {
+        let oldMipoint = oldTile.sideMidpoint(sideIndex);
+        let newMidpoint = newTile.sideMidpoint(i);
+
+        return (oldMipoint.sub(newMidpoint));
+      }
+    }
+
+    throw Error('We do not return midpoints!');
+}
 
 
 

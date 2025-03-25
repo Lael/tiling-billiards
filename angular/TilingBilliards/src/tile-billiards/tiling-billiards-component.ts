@@ -30,8 +30,11 @@ const START_SPEED: number = 0.1;
 })
 export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDestroy {
     orbitControls: OrbitControls;
-    n: number = 3;
-    m: number = 6;
+    c1: number = 0.7;
+    c2 = 0.2;
+    c3= 0.4;
+    c4 = 0.15;
+    c5 = 0.63;
     depth: number = 20;
     logIterations: number = 1;
     geometry: Geometry = Geometry.AFFINE;
@@ -63,9 +66,9 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     }
 
     private resetTiling() {
-       this.tiling = new PenroseTiling([0.5,0.2,0.35,0.68,0.74]);
+       this.tiling = new PenroseTiling([this.c1,this.c2,this.c3,this.c4,this.c5]);
        //this.tiling.generate(1);
-      this.tiling.generate(10);
+      this.tiling.generate(this.depth);
       /*
         const c = 2.0 / this.n + 2.0 / this.m;
 
@@ -125,10 +128,16 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
         this.gui.destroy();
         this.gui = new dat.GUI();
         let tilingFolder = this.gui.addFolder('Tiling');
-        tilingFolder.add(this, 'n', 3, 10, 1)
+        tilingFolder.add(this, 'c1', 0, 1, 0.01)
+            .onChange(this.resetTiling.bind(this));
+        tilingFolder.add(this, 'c2', 0, 1, 0.01)
             .onFinishChange(this.resetTiling.bind(this));
-        tilingFolder.add(this, 'm', 3, 10, 1)
-            .onFinishChange(this.resetTiling.bind(this));
+      tilingFolder.add(this, 'c3', 0, 1, 0.01)
+        .onFinishChange(this.resetTiling.bind(this));
+      tilingFolder.add(this, 'c4', 0, 1, 0.01)
+        .onFinishChange(this.resetTiling.bind(this));
+      tilingFolder.add(this, 'c5', 0, 1, 0.01)
+        .onFinishChange(this.resetTiling.bind(this));
         tilingFolder.add(this, 'depth', 1, 100, 1)
             .onFinishChange(this.resetTiling.bind(this));
         tilingFolder.open();
