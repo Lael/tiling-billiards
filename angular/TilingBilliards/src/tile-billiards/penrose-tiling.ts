@@ -23,12 +23,6 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     const z2 = (Math.cos(2 * Math.PI / 5) * Math.sin(Math.PI / 5)) / (2 * Math.sin(2 * Math.PI / 5));
     const t2 = (Math.sin(2 * Math.PI / 5) * Math.sin(Math.PI / 5)) / (2 * Math.sin(2 * Math.PI / 5));
 
-
-    /*
-    super([{polygon: AffinePolygon.regular(4, 1), color: new Color(0x444444)}]);
-
-  }
-  */
     super([
       {polygon: new AffinePolygon([new Vector2(z1-1,-t1), new Vector2(z1,-t1),
         new Vector2(z1+Math.cos(2*Math.PI/5),Math.sin(2*Math.PI/5)-t1),
@@ -51,15 +45,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
     const angle = l.family * (2*Math.PI/5);
     const direction = new Vector2(Math.cos(angle), Math.sin(angle));
 
-    //const offsetSpacing = member * 0.5;
-    //const source = new Complex(offsetSpacing+Math.cos(angle), offsetSpacing+Math.sin(angle));
-
-    //console.log(`Generating Line - Family: ${l.family}, Member: ${l.member}`);
-    //console.log(`Direction: (${direction.x},${direction.y}), Source: (${source.x},${source.y})`);
-
-    //console.log(`Line Parameters: (a - ${direction.x}, b - ${direction.y}, c - ${this.c[l.family]+l.member})`);
-
-    return new Line(direction.x,direction.y,-(this.c[l.family]+l.member));   // Call to the
+    return new Line(direction.x,direction.y,-(this.c[l.family]+l.member));
   }
 
   /*
@@ -145,29 +131,6 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
   }
 
 
-
-  lineContainsTranslatedPoint(testLine: Line, translatedPoint: Vector2):boolean {
-
-    let contains  = false;
-
-    let RHS = -testLine.c     // negate c to adjust for negative intersection output
-    let LHS = testLine.a*translatedPoint.x + testLine.b*translatedPoint.y;
-
-    console.log(`LHS: ${LHS}, RHS : ${RHS}`); // debug
-
-    if (Math.abs(LHS-RHS) < 1e-6) {   // can have miniscule differences due to round off error in computations
-
-       contains = true;
-    }
-
-    return contains;
-  }
-
-  findDistanceInTermsOfL(distance: number, L: number): number {
-
-    return distance/L;
-  }
-
   findMemberIndex(tileIntersection: Vector2, direction: Vector2,
                   familyIndex: number , lineOn: GridLineIndex, lineCrossing: GridLineIndex): number {
 
@@ -210,17 +173,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
 
       throw Error ('We cannot find member index!');
     }
-
-
-
-      // debug
-    // this.addTile(new PenroseTile(this.rhombusType(lineON,{family: familyIndex, member: 0}),
-      //this.getIntersection(lineON,{family: familyIndex, member: memberIndex}),
-      //this.rhombusRotation(lineON,{family: familyIndex, member: memberIndex}),
-      //lineON, {family: familyIndex, member: memberIndex}))
-
-
-
+    
 
     console.log(`Tile Added at Line On Family: ${lineOn.family}, Member: ${lineOn.member}
     AND Family: ${familyIndex}, Member: ${memberIndex} AT POINT: (${this.getIntersection(lineOn,
