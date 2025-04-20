@@ -5,8 +5,8 @@ import {Line} from "../math/geometry/line";
 import {AffineRay} from "./affine-ray";
 
 export interface AffinePolygonRayCollision {
-    point: Vector2;
-    sideIndex: number;
+  point: Vector2;
+  sideIndex: number;
 }
 
 export class AffinePolygon {
@@ -104,22 +104,16 @@ export class AffinePolygon {
   }
 
   // return normal vector to the side of rhomb
-
   sideNormal(sideIndex: number): Vector2 {
-
     let vector1 = this.vertices[sideIndex];
-    let vector2 = this.vertices[(sideIndex+1) % this.n];
-
-    let distanceVector = new Vector2(vector2.x-vector1.x, vector2.y-vector1.y);
-
+    let vector2 = this.vertices[(sideIndex + 1) % this.n];
+    let distanceVector = new Vector2(vector2.x - vector1.x, vector2.y - vector1.y);
     return new Vector2(distanceVector.y, -distanceVector.x).normalize();
   }
 
   sideMidpoint(sideIndex: number): Vector2 {
     let vector1 = this.vertices[sideIndex];
-    let vector2 = this.vertices[(sideIndex+1) % this.n];
-
+    let vector2 = this.vertices[(sideIndex + 1) % this.n];
     return vector1.clone().add(vector2).multiplyScalar(0.5);
-
   }
 }
