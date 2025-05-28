@@ -37,7 +37,10 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   geometry: Geometry = Geometry.AFFINE;
   start: Vector2 = new Vector2();
   direction: number = 0.1234;
-  behavior: boolean = true;
+  behavior: boolean = false;
+  refractiveIndex1 = 1;
+  refractiveIndex2 = -1;
+
 
   private tiling: PolygonalTiling<any, any> | undefined = undefined;
   private gui: dat.GUI;
@@ -64,8 +67,8 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   }
 
   private resetTiling() {
-    this.tiling = new PenroseTiling([this.c1, this.c2, this.c3, this.c4, this.c5]);
-    //this.tiling.generate(1);
+    this.tiling = new PenroseTiling([this.c1, this.c2, this.c3, this.c4, this.c5],
+      this.refractiveIndex1, this.refractiveIndex2);
     this.tiling.generate(this.depth);
     /*
       const c = 2.0 / this.n + 2.0 / this.m;
@@ -129,23 +132,30 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     tilingFolder.add(this, 'c1', 0, 1, 0.01)
       .onChange(this.resetTiling.bind(this));
     tilingFolder.add(this, 'c2', 0, 1, 0.01)
-      .onFinishChange(this.resetTiling.bind(this));
+      .onChange(this.resetTiling.bind(this));
     tilingFolder.add(this, 'c3', 0, 1, 0.01)
-      .onFinishChange(this.resetTiling.bind(this));
+      .onChange(this.resetTiling.bind(this));
     tilingFolder.add(this, 'c4', 0, 1, 0.01)
-      .onFinishChange(this.resetTiling.bind(this));
+      .onChange(this.resetTiling.bind(this));
     tilingFolder.add(this, 'c5', 0, 1, 0.01)
-      .onFinishChange(this.resetTiling.bind(this));
+      .onChange(this.resetTiling.bind(this));
     tilingFolder.add(this, 'depth', 1, 100, 1)
-      .onFinishChange(this.resetTiling.bind(this));
+      .onChange(this.resetTiling.bind(this));
     tilingFolder.open();
 
     let billiardFolder = this.gui.addFolder('Tiling Billiards');
     billiardFolder.add(this, 'logIterations', 1, 20, 1)
       .name('log2(iters)')
-      .onFinishChange(this.play.bind(this));
-    billiardFolder.add(this, 'behavior').name('Behavior').onFinishChange(this.play.bind(this));
+      .onChange(this.play.bind(this));
+    billiardFolder.add(this, 'behavior').name("Snell's Law").onFinishChange(this.play.bind(this));
     billiardFolder.open();
+
+    let refractiveFolder = this.gui.addFolder("Refractive Indices for Snell's Law");
+    refractiveFolder.add(this, 'refractiveIndex1', -10, 10, 0.01).name("Refract. Index 1")
+      .onFinishChange(this.resetTiling.bind(this));
+    refractiveFolder.add(this, 'refractiveIndex2', -10, 10, 0.01).name("Refract. Index 2")
+      .onFinishChange(this.resetTiling.bind(this));
+    refractiveFolder.open();
 
     this.gui.open();
   }

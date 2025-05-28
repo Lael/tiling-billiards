@@ -2,10 +2,12 @@ import {PolygonalTiling} from "./polygonal-tiling";
 import {AffineTile} from "./affine-tile";
 import {
   BufferGeometry,
+  CircleGeometry,
   InstancedMesh,
   Line,
   LineBasicMaterial,
   Matrix4,
+  Mesh,
   MeshBasicMaterial,
   Scene,
   Shape,
@@ -20,6 +22,7 @@ import {EPSILON} from "../math/math-helpers";
 export abstract class AffinePolygonalTiling<T extends AffineTile> extends PolygonalTiling<T, AffinePolygon> {
   meshes: InstancedMesh[] = [];
   billiardPath: Line | undefined = undefined;
+  billiardStart: Mesh | undefined = undefined;
 
   updateMeshes() {
     this.dirty = false;
@@ -50,6 +53,9 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
     scene.add(...this.meshes);
     if (!!this.billiardPath) {
       scene.add(this.billiardPath);
+      if (!!this.billiardStart) {
+        scene.add(this.billiardStart);
+      }
     }
   }
 
@@ -66,14 +72,9 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
       let collision: AffinePolygonRayCollision;
       try {
         collision = p.castRay(ray);
-        debugger;
-        console.log(`Source ${i}: (${ray.src.x}, ${ray.src.y})`);
-        console.log(`Direction ${i}: (${ray.dir.x}, ${ray.dir.y})`);
-        console.log(`Collision ${i}: (${collision.point.x}, ${collision.point.y})`);
       } catch {
         break;
       }
-
 
       for (let v of p.vertices) {
         if (v.distanceTo(collision.point) < EPSILON) throw Error('hit a vertex');
@@ -89,36 +90,38 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
 
       let si = collision.sideIndex;
       const edge = p.vertices[(si + 1) % p.n].clone().sub(p.vertices[si]);
-      // const reflected = ray.dir.clone().sub(project(ray.dir, edge).multiplyScalar(2)).normalize();
 
-      let alpha = Math.acos(Math.abs(ray.dir.clone().dot(edge)) / (ray.dir.length() * edge.length()));
-      console.log(`Alpha ${i}: ${(360 * alpha) / (2 * Math.PI)}`);
+      // Implementation of Snell's Law
+      let alpha = Math.acos(ray.dir.clone().dot(edge) / (ray.dir.length() * edge.length()));
       let theta1 = (Math.PI / 2) - alpha;
-      console.log(`ThetaOne ${i}: ${(360 * theta1) / (2 * Math.PI)}`);
-
-      // Snell's law
       let adj = this.adjacentTile(tile, si);
       let theta2 = Math.asin((Math.sin(theta1) * this.tileset[tile.tilesetIndex].refractiveIndex) / this.tileset[adj.tilesetIndex].refractiveIndex);
-      console.log(`ThetaTwo ${i}: ${(360 * theta2) / (2 * Math.PI)}`);
 
-      // ternary
-      const reflected = behavior ? ray.dir.clone().sub(project(ray.dir, edge).multiplyScalar(2)).normalize() :
-        ray.dir.clone().rotateAround(new Vector2, theta1 - Math.abs(theta2)).multiplyScalar(2).normalize();
-
+      // Reminder that behavior is initialized to 'false', which takes care of case (1) of reflection over every boundary
+      // When behavior changes to 'true' (via checking a box for Snell's Law on the GUI), case (2) of Snell's Law is implemented
+      const reflected = behavior ? ray.dir.clone().rotateAround(new Vector2, -theta1 + (theta2)).multiplyScalar(2).normalize() :
+        ray.dir.clone().sub(project(ray.dir, edge).multiplyScalar(2)).normalize();
 
       // It is helpful for numerical reasons to push the new ray source a little ways into the new tile. This has
       // a minute chance of causing errors close to vertices, but *shrug*.
       ray = {
-        src: collision.point.add(reflected.clone().multiplyScalar(EPSILON * EPSILON)),
+        src: collision.point.add(reflected.clone().multiplyScalar(EPSILON)),
         dir: reflected
       };
+
       path.push(collision.point);
-
-
       tile = this.adjacentTile(tile, si);
       this.addTile(tile);
     }
-    this.billiardPath = new Line(new BufferGeometry().setFromPoints(path), new LineBasicMaterial({color: 0x000000}));
+
+    this.billiardPath = new Line(new BufferGeometry().setFromPoints(path), new LineBasicMaterial({
+      color: 0x0000ff,
+      linewidth: 4
+    }));
+
+    this.billiardStart = new Mesh(new CircleGeometry(0.025, 50), new MeshBasicMaterial({
+      color: 0xff0000
+    }));
   }
 
   private findTileContaining(point: Vector2): T {
