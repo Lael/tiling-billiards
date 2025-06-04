@@ -144,7 +144,11 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
   }
 
   private periodCheck(current: Vector2, behind: Vector2, start: Vector2): boolean {
-    return new LineSegment(current, behind).containsPoint(start);
+    try {
+      return new LineSegment(current, behind).containsPoint(start);
+    } catch (e) {
+      return false;
+    }
   }
 }
 
