@@ -3,7 +3,7 @@ import {Color, Vector2} from "three";
 import {AffinePolygon} from "./affine-polygon";
 import {AffinePolygonalTiling} from "./affine-polygonal-tiling";
 
-export class AffineQuasiregularTiling extends AffinePolygonalTiling {
+export class AffineQuasiregularTiling extends AffinePolygonalTiling<AffineTile> {
     centerToCenter: number;
 
     constructor(n: number, m: number) {
