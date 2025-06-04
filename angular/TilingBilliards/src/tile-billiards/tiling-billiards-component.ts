@@ -9,12 +9,6 @@ import {PenroseTiling} from './penrose-tiling';
 
 const CLEAR_COLOR = 0x0a2933;
 
-enum Geometry {
-  AFFINE,
-  HYPERBOLIC,
-  SPHERICAL
-}
-
 const DIR_SPEED: number = 0.3;
 const START_SPEED: number = 0.1;
 
@@ -35,7 +29,6 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   depth: number = 20;
   startVisible: boolean = false;
   logIterations: number = 1;
-  geometry: Geometry = Geometry.AFFINE;
   start: Vector2 = new Vector2();
   direction: number = 0.1234;
   snell: boolean = false;
@@ -73,37 +66,12 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
       this.refractiveIndex1, this.refractiveIndex2);
     this.tiling.generate(this.depth);
     this.periodOutput = "";
-    /*
-      const c = 2.0 / this.n + 2.0 / this.m;
-
-      if (closeEnough(c, 1)) {
-          // Affine
-          this.geometry = Geometry.AFFINE;
-          this.tiling = new AffineQuasiregularTiling(this.n, this.m);
-          this.tiling.generate(this.depth);
-      } else if (c < 1.0) {
-          // Hyperbolic
-          this.geometry = Geometry.HYPERBOLIC;
-          this.tiling = new HyperbolicQuasiregularTiling(this.n, this.m);
-          this.tiling.generate(Math.min(this.depth, 10));
-      } else {
-          // Spherical
-          this.geometry = Geometry.SPHERICAL;
-          // Depth is meaningless here: we will always generate the whole tiling.
-      }
-      this.play();
-
-       */
   }
 
   override frame(dt: number) {
     this.processKeyboardInput(dt);
     this.scene.clear();
     this.tiling?.draw(this.scene);
-    // draw the starting point
-    switch (this.geometry) {
-
-    }
   }
 
   processKeyboardInput(dt: number) {
