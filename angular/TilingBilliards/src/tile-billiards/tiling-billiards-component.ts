@@ -12,6 +12,11 @@ const CLEAR_COLOR = 0x0a2933;
 const DIR_SPEED: number = 0.3;
 const START_SPEED: number = 0.1;
 
+const IRR_1 = (Math.sqrt(5) + 1) / 2;
+const IRR_2 = Math.PI;
+const IRR_3 = Math.E;
+const IRR_4 = Math.SQRT2;
+
 @Component({
   selector: 'tiling-billiards',
   templateUrl: '../three-demo/three-demo.component.html',
@@ -25,7 +30,6 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   c2 = 0.2;
   c3 = 0.4;
   c4 = 0.15;
-  c5 = 0.63;
   depth: number = 20;
   startVisible: boolean = false;
   logIterations: number = 1;
@@ -62,7 +66,22 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   }
 
   private resetTiling() {
-    this.tiling = new PenroseTiling([this.c1, this.c2, this.c3, this.c4, this.c5],
+    const offsets =
+      [0.2, 0.2, 0.2, 0.2, 0.2];
+    const basis: number[][] = [
+      [IRR_1, 0, 0, 0, -IRR_1],
+      [0, IRR_2, 0, 0, -IRR_2],
+      [0, 0, IRR_3, 0, -IRR_3],
+      [0, 0, 0, IRR_4, -IRR_4],
+    ];
+    for (let i = 0; i < 5; i++) {
+      offsets[i] +=
+        basis[0][i] * this.c1 +
+        basis[1][i] * this.c2 +
+        basis[2][i] * this.c3 +
+        basis[3][i] * this.c4;
+    }
+    this.tiling = new PenroseTiling(offsets,
       this.refractiveIndex1, this.refractiveIndex2);
     this.tiling.generate(this.depth);
     this.periodOutput = "";
@@ -101,15 +120,13 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     this.gui.destroy();
     this.gui = new dat.GUI();
     let tilingFolder = this.gui.addFolder('Tiling');
-    tilingFolder.add(this, 'c1', 0, 1, 0.01)
+    tilingFolder.add(this, 'c1', 0.01, 1, 0.01)
       .onChange(this.resetTiling.bind(this));
-    tilingFolder.add(this, 'c2', 0, 1, 0.01)
+    tilingFolder.add(this, 'c2', 0.01, 1, 0.01)
       .onChange(this.resetTiling.bind(this));
-    tilingFolder.add(this, 'c3', 0, 1, 0.01)
+    tilingFolder.add(this, 'c3', 0.01, 1, 0.01)
       .onChange(this.resetTiling.bind(this));
-    tilingFolder.add(this, 'c4', 0, 1, 0.01)
-      .onChange(this.resetTiling.bind(this));
-    tilingFolder.add(this, 'c5', 0, 1, 0.01)
+    tilingFolder.add(this, 'c4', 0.01, 1, 0.01)
       .onChange(this.resetTiling.bind(this));
     tilingFolder.add(this, 'depth', 1, 100, 1)
       .onChange(this.resetTiling.bind(this));
