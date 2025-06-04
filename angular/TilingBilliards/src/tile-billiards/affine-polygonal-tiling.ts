@@ -61,7 +61,7 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
     }
   }
 
-  override play(iterations: number, start: Vector2, direction: number, snell: boolean, startVisible: boolean): number | undefined | void {
+  override play(iterations: number, start: Vector2, direction: number, snell: boolean, startVisible: boolean): number | undefined {
     let ray: AffineRay = {
       src: start,
       dir: Complex.polar(1, direction).toVector2(),
@@ -128,7 +128,7 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
     this.billiardStart.visible = startVisible;
     this.billiardStart.position.set(start.x, start.y, 0.01);
 
-    return this.billiardPeriod
+    return this.billiardPeriod;
   }
 
   private findTileContaining(point: Vector2): T {
@@ -144,7 +144,11 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
   }
 
   private periodCheck(current: Vector2, behind: Vector2, start: Vector2): boolean {
-    return new LineSegment(current, behind).containsPoint(start);
+    try {
+      return new LineSegment(current, behind).containsPoint(start);
+    } catch (e) {
+      return false;
+    }
   }
 }
 
