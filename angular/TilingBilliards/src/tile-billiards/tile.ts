@@ -1,16 +1,17 @@
 import {Color} from "three";
 
 export abstract class Tile {
-    tilesetIndex: number;
+  tilesetIndex: number;
 
-    constructor(tileIndex: number) {
-        this.tilesetIndex = tileIndex;
-    }
+  constructor(tileIndex: number) {
+    this.tilesetIndex = tileIndex;
+  }
 
-    abstract get id(): string;
+  abstract get id(): string;
 }
 
 export interface ProtoTile<P> {
-    polygon: P,
-    color: Color,
+  polygon: P,
+  color: Color,
+  refractiveIndex: number
 }
