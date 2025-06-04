@@ -50,10 +50,7 @@ export class PenroseTiling extends AffinePolygonalTiling<PenroseTile> {
    */
   rhombusType(l1: GridLineIndex, l2: GridLineIndex): number {
     const modValue = Math.abs(l2.family - l1.family) % 5;
-    if (modValue == 2 || modValue == 3)
-      return 1;
-    else
-      return 0;
+    return (modValue == 2 || modValue == 3) ? 1 : 0;
   }
 
   /**

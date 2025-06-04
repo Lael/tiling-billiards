@@ -33,13 +33,15 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   c4 = 0.15;
   c5 = 0.63;
   depth: number = 20;
+  startVisible: boolean = false;
   logIterations: number = 1;
   geometry: Geometry = Geometry.AFFINE;
   start: Vector2 = new Vector2();
   direction: number = 0.1234;
-  behavior: boolean = false;
-  refractiveIndex1 = 1;
-  refractiveIndex2 = -1;
+  snell: boolean = false;
+  refractiveIndex1: number = 1;
+  refractiveIndex2: number = -1;
+  periodOutput: string = "";
 
 
   private tiling: PolygonalTiling<any, any> | undefined = undefined;
@@ -70,6 +72,7 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     this.tiling = new PenroseTiling([this.c1, this.c2, this.c3, this.c4, this.c5],
       this.refractiveIndex1, this.refractiveIndex2);
     this.tiling.generate(this.depth);
+    this.periodOutput = "";
     /*
       const c = 2.0 / this.n + 2.0 / this.m;
 
@@ -122,7 +125,9 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   }
 
   play() {
-    this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction, this.behavior);
+    this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction, this.snell, this.startVisible);
+    this.periodOutput = (this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction,
+      this.snell, this.startVisible))?.toString() ?? "";
   }
 
   updateGUI() {
@@ -144,10 +149,12 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
     tilingFolder.open();
 
     let billiardFolder = this.gui.addFolder('Tiling Billiards');
+    billiardFolder.add(this, 'startVisible').name("Start Visible").onFinishChange(this.play.bind(this));
     billiardFolder.add(this, 'logIterations', 1, 20, 1)
       .name('log2(iters)')
       .onChange(this.play.bind(this));
-    billiardFolder.add(this, 'behavior').name("Snell's Law").onFinishChange(this.play.bind(this));
+    billiardFolder.add(this, 'snell').name("Snell's Law").onFinishChange(this.play.bind(this));
+    billiardFolder.add(this, 'periodOutput').name('Periodic Orbit (n)').listen();
     billiardFolder.open();
 
     let refractiveFolder = this.gui.addFolder("Refractive Indices for Snell's Law");

@@ -18,11 +18,13 @@ import {AffinePolygon, AffinePolygonRayCollision} from "./affine-polygon";
 import {AffineRay} from "./affine-ray";
 import {Complex} from "../math/complex";
 import {EPSILON} from "../math/math-helpers";
+import {LineSegment} from '../math/geometry/line-segment';
 
 export abstract class AffinePolygonalTiling<T extends AffineTile> extends PolygonalTiling<T, AffinePolygon> {
   meshes: InstancedMesh[] = [];
   billiardPath: Line | undefined = undefined;
   billiardStart: Mesh | undefined = undefined;
+  billiardPeriod: number | undefined;
 
   updateMeshes() {
     this.dirty = false;
@@ -59,7 +61,7 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
     }
   }
 
-  override play(iterations: number, start: Vector2, direction: number, behavior: boolean) {
+  override play(iterations: number, start: Vector2, direction: number, snell: boolean, startVisible: boolean): number | undefined | void {
     let ray: AffineRay = {
       src: start,
       dir: Complex.polar(1, direction).toVector2(),
@@ -68,7 +70,6 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
     let tile = this.findTileContaining(start);
     for (let i = 0; i < iterations; i++) {
       const p = this.polygonForTile(tile);
-      console.log(`Tile Type ${i}: ${tile.tilesetIndex}`);
       let collision: AffinePolygonRayCollision;
       try {
         collision = p.castRay(ray);
@@ -99,7 +100,7 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
 
       // Reminder that behavior is initialized to 'false', which takes care of case (1) of reflection over every boundary
       // When behavior changes to 'true' (via checking a box for Snell's Law on the GUI), case (2) of Snell's Law is implemented
-      const reflected = behavior ? ray.dir.clone().rotateAround(new Vector2, -theta1 + (theta2)).multiplyScalar(2).normalize() :
+      const reflected = snell ? ray.dir.clone().rotateAround(new Vector2, -theta1 + (theta2)).multiplyScalar(2).normalize() :
         ray.dir.clone().sub(project(ray.dir, edge).multiplyScalar(2)).normalize();
 
       // It is helpful for numerical reasons to push the new ray source a little ways into the new tile. This has
@@ -112,16 +113,22 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
       path.push(collision.point);
       tile = this.adjacentTile(tile, si);
       this.addTile(tile);
+      this.billiardPeriod = undefined;
+
+      if (this.periodCheck(collision.point, path[i], start) && this.periodCheck(collision.point, path[i], path[1]) && i != 0) {
+        this.billiardPeriod = i;
+        break;
+      }
     }
 
-    this.billiardPath = new Line(new BufferGeometry().setFromPoints(path), new LineBasicMaterial({
-      color: 0x0000ff,
-      linewidth: 4
-    }));
+    this.billiardPath = new Line(new BufferGeometry().setFromPoints(path), new LineBasicMaterial({color: 0x0000ff}));
+    this.billiardPath.position.set(0, 0, 0.02);
 
-    this.billiardStart = new Mesh(new CircleGeometry(0.025, 50), new MeshBasicMaterial({
-      color: 0xff0000
-    }));
+    if (!this.billiardStart) this.billiardStart = new Mesh(new CircleGeometry(0.035, 50), new MeshBasicMaterial({color: 0xff0000}));
+    this.billiardStart.visible = startVisible;
+    this.billiardStart.position.set(start.x, start.y, 0.01);
+
+    return this.billiardPeriod
   }
 
   private findTileContaining(point: Vector2): T {
@@ -134,6 +141,10 @@ export abstract class AffinePolygonalTiling<T extends AffineTile> extends Polygo
   private polygonForTile(t: T): AffinePolygon {
     let p = this.tileset[t.tilesetIndex].polygon;
     return p.rotate(t.rotation).translate(t.position);
+  }
+
+  private periodCheck(current: Vector2, behind: Vector2, start: Vector2): boolean {
+    return new LineSegment(current, behind).containsPoint(start);
   }
 }
 
