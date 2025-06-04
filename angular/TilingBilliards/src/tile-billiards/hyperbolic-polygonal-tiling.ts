@@ -84,7 +84,7 @@ export abstract class HyperbolicPolygonalTiling extends PolygonalTiling<Hyperbol
         return new Mesh(new ShapeGeometry(shape), new MeshBasicMaterial({color: prototile.color}));
     }
 
-    override play(iterations: number, start: Vector2, direction: number) {
+    override play(iterations: number, start: Vector2, direction: number): number | undefined {
         let ray: HyperbolicRay = {
             src: HyperPoint.fromPoincare(start),
             poincareDir: direction,
@@ -134,6 +134,7 @@ export abstract class HyperbolicPolygonalTiling extends PolygonalTiling<Hyperbol
         this.billiardPath = new Line(
             new BufferGeometry().setFromPoints(path.getPoints()),
             new LineBasicMaterial({color: 0xffffff}));
+        return undefined;
     }
 
     private findTileContaining(point: HyperPoint): HyperbolicTile {
