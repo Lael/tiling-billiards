@@ -63,5 +63,5 @@ export abstract class PolygonalTiling<
 
   abstract draw(scene: Scene): void;
 
-  abstract play(iterations: number, start: Vector2, direction: number, snell: boolean, startVisible: boolean): number | void;
+  abstract play(iterations: number, start: Vector2, direction: number, snell: boolean, startVisible: boolean): number | undefined;
 }

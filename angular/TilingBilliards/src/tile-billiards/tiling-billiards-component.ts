@@ -125,9 +125,8 @@ export class TilingBilliardsComponent extends ThreeDemoComponent implements OnDe
   }
 
   play() {
-    this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction, this.snell, this.startVisible);
-    this.periodOutput = (this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction,
-      this.snell, this.startVisible))?.toString() ?? "";
+    const period = this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction, this.snell, this.startVisible);
+    this.periodOutput = period?.toString() ?? "";
   }
 
   updateGUI() {
