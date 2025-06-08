@@ -13,19 +13,10 @@ export interface HyperbolicPolygonRayCollision {
 export class HyperbolicPolygon {
     vertices: HyperPoint[];
     n: number;
-    sides: HyperGeodesic[] = [];
 
     constructor(vertices: HyperPoint[]) {
         this.vertices = vertices;
         this.n = vertices.length;
-        for (let i = 0; i < this.n; i++) {
-            this.sides.push(
-                new HyperGeodesic(
-                    this.vertices[i],
-                    this.vertices[(i + 1) % this.n],
-                )
-            );
-        }
     }
 
     static regular(n: number, sideLength: number): HyperbolicPolygon {
@@ -58,15 +49,21 @@ export class HyperbolicPolygon {
         let rayGeo = HyperGeodesic.poincareRay(ray.src, ray.poincareDir);
         let rayGeoKlein = rayGeo.segment(HyperbolicModel.KLEIN);
         let bestT = Number.POSITIVE_INFINITY;
-        let bestCollision: HyperbolicPolygonRayCollision = {
-            point: rayGeo.q,
-            sideIndex: -1,
-        };
+        let bestCollision: HyperbolicPolygonRayCollision | undefined = undefined;
         for (let i = 0; i < this.vertices.length; i++) {
-            const side = this.sides[i];
+            const side = new HyperGeodesic(
+                this.vertices[i],
+                this.vertices[(i + 1) % this.n],
+            )
             let intersection = rayGeo.intersect(side);
-            if (intersection == undefined) continue;
-            if (!rayGeoKlein.containsPoint(intersection.klein) || !side.containsPoint(intersection)) continue;
+            if (intersection == undefined) {
+                console.log('intersection undefined');
+                continue;
+            }
+            if (!rayGeoKlein.containsPoint(intersection.klein) || !side.containsPoint(intersection)) {
+                console.log('intersection not contained');
+                continue;
+            }
             let t = intersection.distance(ray.src);
             if (t > 0 && t < bestT) {
                 bestT = t;
